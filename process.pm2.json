@@ -1,0 +1,9 @@
+{
+    "apps": [
+        {
+            "name": "nuxtplate",
+            "script": "npm",
+            "args" : "start"
+        }
+    ]
+}

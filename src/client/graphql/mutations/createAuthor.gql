@@ -1,0 +1,7 @@
+mutation createAuthor($name: String, $age: Int){
+  createAuthor(name: $name, age: $age){
+    _id
+    name
+    age
+  }
+}

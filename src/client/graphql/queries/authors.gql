@@ -1,0 +1,10 @@
+{
+  authors{
+    _id
+    name
+    books{
+      _id
+      name
+    }
+  }
+}

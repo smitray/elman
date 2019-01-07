@@ -1,0 +1,24 @@
+{
+    "eslint.enable": true,
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "vue"
+    ],
+    "emmet.showAbbreviationSuggestions": true,
+    "emmet.showExpandedAbbreviation": "always",
+    "emmet.includeLanguages": {
+        "vue-html": "html",
+        "vue": "html"
+    },
+    "editor.formatOnPaste": false,
+    "editor.tabSize": 2,
+    "git.ignoreLimitWarning": true,
+    "editor.tabCompletion": "on",
+    "editor.snippetSuggestions": "top",
+    "typescript.validate.enable": false,
+    "javascript.validate.enable": false,
+    "css.validate": false,
+    "vetur.validation.style": false,
+    "stylelint.enable": true
+}
