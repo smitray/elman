@@ -34,7 +34,7 @@ const userDefs = gql`
     _id: String,
     firstName: String,
     lastName: String,
-    avatar: File,
+    # avatar: File,
     accountId: String,
     account: Account
   }

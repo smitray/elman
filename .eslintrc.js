@@ -56,6 +56,13 @@ module.exports = {
         'props': false
       }
     ],
+    'no-underscore-dangle': [
+      'error', {
+        'allow': [
+          '_id'
+        ]
+      }
+    ],
     'no-debugger': !isdev ? 2 : 0,
     'no-console': !isdev ? 2 : 0
   }

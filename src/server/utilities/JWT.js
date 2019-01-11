@@ -19,7 +19,7 @@ const generateJwt = data => new Promise((resolve, reject) => {
     if (err) {
       reject(err);
     }
-    resolve(`Bearer ${token}`);
+    resolve(token);
   });
 });
 

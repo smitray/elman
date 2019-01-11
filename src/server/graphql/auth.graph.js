@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 import uniqueValidator from 'mongoose-unique-validator';
 import timestamp from 'mongoose-timestamp';
-import { genSaltSync, hashSync } from 'bcryptjs';
-import { Crud } from '@utl';
+import { genSaltSync, hashSync, compareSync } from 'bcryptjs';
+import { Crud, generateJwt } from '@utl';
 import { gql } from 'apollo-server-koa';
+
 import { userCrud } from './user.graph';
 
 /**
@@ -32,10 +33,6 @@ const accountSchema = new mongoose.Schema({
   accType: {
     type: String,
     default: 'user'
-  },
-  jwt: {
-    type: String,
-    default: null
   },
   socialId: {
     type: String,
@@ -75,9 +72,76 @@ const accountModel = mongoose.model('accountModel', accountSchema);
  */
 
 class AccountService extends Crud {
-  // constructor(model) {
-  //   super(model);
-  // }
+  constructor(model) {
+    super(model);
+    this.userCrud = userCrud;
+  }
+
+  async createAccount({
+    firstName,
+    lastName,
+    username,
+    email,
+    password,
+    accType
+  }) {
+    try {
+      const account = await this.create({
+        username,
+        email,
+        password,
+        accType
+      });
+      const user = await this.userCrud.create({
+        firstName,
+        lastName,
+        accountId: account._id
+      });
+      account.token = await generateJwt({
+        authId: account._id,
+        userId: user._id,
+        accType
+      });
+      return account;
+    } catch (err) {
+      throw new Error(err);
+    }
+  }
+
+  async login({
+    username,
+    password
+  }) {
+    try {
+      const account = await this.single({
+        qr: {
+          $or: [{
+            username
+          }, {
+            email: username
+          }]
+        }
+      });
+      if (!account) {
+        throw new Error('No user found');
+      } else if (account && !compareSync(password, account.password)) {
+        throw new Error('Wrong credentials');
+      }
+      const user = await userCrud.single({
+        qr: {
+          accountId: account._id
+        }
+      });
+      account.token = await generateJwt({
+        authId: account._id,
+        userId: user._id,
+        accType: account.accType
+      });
+      return account;
+    } catch (err) {
+      throw new Error(err);
+    }
+  }
 }
 
 const accountCrud = new AccountService(accountModel);
@@ -104,6 +168,8 @@ const accountDefs = gql`
 
   type Mutation {
     createAccount(
+      firstName: String!,
+      lastName: String!,
       username: String!,
       email: String!,
       password: String!,
@@ -166,6 +232,36 @@ const accountResolvers = {
       } catch (err) {
         throw new Error(err);
       }
+    }
+  },
+  Mutation: {
+    createAccount: (root, {
+      firstName,
+      lastName,
+      username,
+      email,
+      password,
+      accType = 'user'
+    }) => {
+      const account = accountCrud.createAccount({
+        firstName,
+        lastName,
+        username,
+        email,
+        password,
+        accType
+      });
+      return account;
+    },
+    login: (root, {
+      username,
+      password
+    }) => {
+      const account = accountCrud.login({
+        username,
+        password
+      });
+      return account;
     }
   }
 };

@@ -4,19 +4,33 @@ import mongoose from 'mongoose';
 
 
 // import { typeDefs, resolvers } from './test';
-import {
-  authorDefs,
-  authorResolvers,
-  authorModel,
-  authorCrud
-} from './author.graph';
+// import {
+//   authorDefs,
+//   authorResolvers,
+//   authorModel,
+//   authorCrud
+// } from './author.graph';
+
+// import {
+//   bookDefs,
+//   bookResolvers,
+//   bookModel,
+//   bookCrud
+// } from './book.graph';
 
 import {
-  bookDefs,
-  bookResolvers,
-  bookModel,
-  bookCrud
-} from './book.graph';
+  accountModel,
+  accountCrud,
+  accountDefs,
+  accountResolvers
+} from './auth.graph';
+
+import {
+  userModel,
+  userCrud,
+  userDefs,
+  userResolvers
+} from './user.graph';
 
 const { ObjectId } = mongoose.Types;
 
@@ -40,12 +54,12 @@ export const graphControl = (app) => {
   const server = new ApolloServer({
     typeDefs: [
       Query,
-      authorDefs,
-      bookDefs
+      accountDefs,
+      userDefs
     ],
     resolvers: merge(
-      authorResolvers,
-      bookResolvers
+      accountResolvers,
+      userResolvers
     ),
     context: ({ ctx }) => ctx
   });
@@ -53,8 +67,12 @@ export const graphControl = (app) => {
 };
 
 export {
-  authorModel,
-  authorCrud,
-  bookModel,
-  bookCrud
+  // authorModel,
+  // authorCrud,
+  // bookModel,
+  // bookCrud
+  accountModel,
+  accountCrud,
+  userModel,
+  userCrud
 };

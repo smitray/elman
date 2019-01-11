@@ -14,5 +14,5 @@ module.exports = {
     static: path.resolve(__dirname, '../static'),
     logs: path.join(__dirname, '../logs')
   },
-  nuxtBuild: true
+  nuxtBuild: false
 };
