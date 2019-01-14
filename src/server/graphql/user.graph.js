@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import uniqueValidator from 'mongoose-unique-validator';
 import timestamp from 'mongoose-timestamp';
 import { Crud } from '@utl';
-import { gql } from 'apollo-server-koa';
+import { gql, AuthenticationError } from 'apollo-server-koa';
 import { accountCrud } from './auth.graph';
 
 const { ObjectId } = mongoose.Types;
@@ -45,6 +45,13 @@ const userDefs = gql`
     ): User
   }
 
+  extend type Mutation {
+    updateUser(
+      firstName: String,
+      lastName: String
+    ): User
+  }
+
 `;
 
 const userResolvers = {
@@ -73,6 +80,32 @@ const userResolvers = {
         return account;
       } catch (error) {
         throw new Error(error);
+      }
+    }
+  },
+  Mutation: {
+    updateUser: async (root, {
+      firstName,
+      lastName
+    }, { userId }) => {
+      if (!userId) {
+        throw new AuthenticationError('User must be authenticated');
+      }
+      try {
+        const user = await userCrud.put({
+          params: {
+            qr: {
+              _id: userId
+            }
+          },
+          body: {
+            firstName,
+            lastName
+          }
+        });
+        return user;
+      } catch (err) {
+        throw new Error(err);
       }
     }
   }

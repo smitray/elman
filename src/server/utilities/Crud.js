@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 export default class Crud {
   constructor(model) {
     this.model = model;
@@ -50,7 +52,7 @@ export default class Crud {
 
   async put(options) {
     const record = await this.single(options.params);
-    Object.assign(record, options.body);
+    Object.assign(record, _.pickBy(options.body, _.identity));
     return new Promise((resolve, reject) => {
       record.save().then((result) => {
         resolve(result);

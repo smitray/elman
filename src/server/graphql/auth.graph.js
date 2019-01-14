@@ -2,10 +2,25 @@ import mongoose from 'mongoose';
 import uniqueValidator from 'mongoose-unique-validator';
 import timestamp from 'mongoose-timestamp';
 import { genSaltSync, hashSync, compareSync } from 'bcryptjs';
-import { Crud, generateJwt } from '@utl';
-import { gql } from 'apollo-server-koa';
+import { Crud } from '@utl';
+import { gql, AuthenticationError } from 'apollo-server-koa';
+import { sign } from 'jsonwebtoken';
+import config from 'config';
 
 import { userCrud } from './user.graph';
+
+const { 0: secret } = config.get('secret');
+
+const generateJwt = data => new Promise((resolve, reject) => {
+  sign(data, secret, {
+    expiresIn: '6h'
+  }, (err, token) => {
+    if (err) {
+      reject(err);
+    }
+    resolve(token);
+  });
+});
 
 /**
  * Mongoose schema and model
@@ -14,7 +29,6 @@ import { userCrud } from './user.graph';
 const accountSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: true,
     unique: true
   },
   password: {
@@ -23,7 +37,6 @@ const accountSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
     unique: true
   },
   status: {
@@ -175,8 +188,10 @@ const accountDefs = gql`
       password: String!,
       accType: String
     ): Account
-    updatePassword(
-      password: String!
+    updateAccount(
+      username: String,
+      password: String,
+      email: String
     ): Account
     deleteAccount(
       _id: String!
@@ -262,6 +277,32 @@ const accountResolvers = {
         password
       });
       return account;
+    },
+    updateAccount: async (root, {
+      username,
+      password,
+      email
+    }, { authId }) => {
+      if (!authId) {
+        throw new AuthenticationError('User must be authenticated');
+      }
+      try {
+        const account = await accountCrud.put({
+          params: {
+            qr: {
+              _id: authId
+            }
+          },
+          body: {
+            username,
+            email,
+            password
+          }
+        });
+        return account;
+      } catch (err) {
+        throw new Error(err);
+      }
     }
   }
 };

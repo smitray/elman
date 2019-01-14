@@ -1,22 +1,11 @@
-import { ApolloServer, gql } from 'apollo-server-koa';
+import {
+  ApolloServer,
+  gql
+} from 'apollo-server-koa';
 import { merge } from 'lodash';
 import mongoose from 'mongoose';
-
-
-// import { typeDefs, resolvers } from './test';
-// import {
-//   authorDefs,
-//   authorResolvers,
-//   authorModel,
-//   authorCrud
-// } from './author.graph';
-
-// import {
-//   bookDefs,
-//   bookResolvers,
-//   bookModel,
-//   bookCrud
-// } from './book.graph';
+import { verify } from 'jsonwebtoken';
+import config from 'config';
 
 import {
   accountModel,
@@ -31,6 +20,8 @@ import {
   userDefs,
   userResolvers
 } from './user.graph';
+
+const { 0: secret } = config.get('secret');
 
 const { ObjectId } = mongoose.Types;
 
@@ -61,16 +52,34 @@ export const graphControl = (app) => {
       accountResolvers,
       userResolvers
     ),
-    context: ({ ctx }) => ctx
+    context: async ({
+      ctx: {
+        request
+      }
+    }) => {
+      if (request.headers.authorization) {
+        const token = request.headers.authorization;
+        if (token && token.split(' ')[0] !== 'Bearer') {
+          throw new Error('Invalid Authorization Header');
+        }
+        const {
+          authId,
+          userId,
+          accType
+        } = verify(token.split(' ')[1], secret);
+        return {
+          authId,
+          userId,
+          accType
+        };
+      }
+      return null;
+    }
   });
   server.applyMiddleware({ app });
 };
 
 export {
-  // authorModel,
-  // authorCrud,
-  // bookModel,
-  // bookCrud
   accountModel,
   accountCrud,
   userModel,
